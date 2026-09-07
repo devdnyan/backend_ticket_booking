@@ -1,4 +1,4 @@
-import { pool } from './config/database.js';
+import { pool } from './database.js';
 
 async function seedDataBase() {
     try{

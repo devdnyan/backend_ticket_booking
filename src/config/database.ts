@@ -1,4 +1,4 @@
-import { Pool } from "pg";
+import { Client, Pool } from "pg";
 
 const pool = new Pool({
     user: "ticket_app",
@@ -7,5 +7,6 @@ const pool = new Pool({
     password: "banana",
     port: 5432,
 })
+
 
 export { pool };
