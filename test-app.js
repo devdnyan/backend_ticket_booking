@@ -3,19 +3,17 @@ async function fireConcurrentRequests() {
     const payload = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ seatId: '38472a4b-4411-4989-9eae-b6be7354991b' })
+        body: JSON.stringify({ seatId: '0be3044f-5238-4493-9857-8d1afa777834' })
     };
 
-    const requests = Array.from({length: 10}, () => fetch(url, payload));
+    const requests = Array.from({length: 10}, () => 
+        fetch(url, payload).then(async(res) => {
+            const data = await res.json();
+            console.log(`Status: ${res.status} | Response:`, data);
+        }));
 
     console.log("Firing 10 simultaneous requests...");
-    const responses = await Promise.all(requests);
-    
-    for (const res of responses) {
-        const data = await res.json();
-        console.log(`Status: ${res.status} | Response:`, data);
-    }
-
+    await Promise.all(requests);
 }
 
 fireConcurrentRequests();

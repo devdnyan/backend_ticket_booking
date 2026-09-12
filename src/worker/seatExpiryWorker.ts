@@ -1,0 +1,52 @@
+import { Worker } from "bullmq";
+import { pool } from "../config/database.js";
+
+
+const seatExpiryWorker = new Worker('SeatExpiryQueue', async (job) => {
+    const { seatId, userId } = job.data;
+
+    try {
+        const result = await pool.query(
+            `SELECT * 
+                FROM seats 
+                WHERE 
+                    id = $1::uuid AND 
+                    status = $2::seat_status AND
+                    held_by_user_id = $3::uuid`,
+            [seatId, 'HELD', userId]
+        )
+        if(!result.rows.length) {
+            console.log(`Seat ${seatId} is not held or does not exist.`);
+            return;
+        }
+        await pool.query(
+            `UPDATE seats 
+                SET status = 'AVAILABLE',
+                    held_by_user_id = NULL,
+                    held_until = NULL 
+                WHERE id = $1::uuid AND held_by_user_id = $2::uuid`,
+            [seatId, userId]
+        )
+        console.log(`Seat ${seatId} has been released and is now available.`);
+    } catch (error) {
+        console.error(`Error occurred while releasing seat ${seatId}:`, error);
+        throw error;
+    }
+}, 
+    {
+        connection: {
+            host: 'localhost',
+            port: 6379
+        }
+    }
+)
+
+seatExpiryWorker.on('completed', (job) => {
+    const { seatId, userId } = job.data;
+    console.log(`Seat expiry job ${job.id} completed successfully for seat ${seatId} held by user ${userId}.`);
+});
+
+seatExpiryWorker.on('failed', (_, err) => {
+    console.error(`Error:`, err);
+})
+console.log("Running seat expiry worker...");
