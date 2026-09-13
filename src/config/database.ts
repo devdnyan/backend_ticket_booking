@@ -1,4 +1,4 @@
-import { Client, Pool } from "pg";
+import { Pool } from "pg";
 
 const pool = new Pool({
     user: "ticket_app",
