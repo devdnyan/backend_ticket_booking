@@ -1,5 +1,7 @@
 import express from 'express';
 import bookingRoutes from './routes/bookingRoutes.js';
+import intitalWebsocketServer from './config/websocket.js';
+import "./worker/seatExpiryWorker.js";
 
 const app = express();
 app.use(express.json());
@@ -9,6 +11,8 @@ app.get('/', (req, res) => {
     res.send('Welcome to the Ticket Booking API');
 })
 
-app.listen(3000, () => {
+const httpServer = app.listen(3000, () => {
     console.log('Server is running on port 3000');
 });
+
+intitalWebsocketServer(httpServer);

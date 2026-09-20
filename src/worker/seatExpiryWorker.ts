@@ -1,5 +1,6 @@
 import { Worker } from "bullmq";
 import { pool } from "../config/database.js";
+import eventBus from "../config/eventBus.js";
 
 
 const seatExpiryWorker = new Worker('SeatExpiryQueue', async (job) => {
@@ -43,6 +44,7 @@ const seatExpiryWorker = new Worker('SeatExpiryQueue', async (job) => {
 
 seatExpiryWorker.on('completed', (job) => {
     const { seatId, userId } = job.data;
+    eventBus.emit("eventUpdate", { eventId: "bf723993-2079-4bf9-9ed1-23aaccd0cfbe", seatId: seatId, status: "Available" });
     console.log(`Seat expiry job ${job.id} completed successfully for seat ${seatId} held by user ${userId}.`);
 });
 
