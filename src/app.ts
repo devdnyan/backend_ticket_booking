@@ -1,7 +1,6 @@
 import express from 'express';
 import bookingRoutes from './routes/bookingRoutes.js';
 import intitalWebsocketServer from './config/websocket.js';
-import "./worker/seatExpiryWorker.js";
 
 const app = express();
 app.use(express.json());

@@ -1,11 +1,9 @@
 import { Worker } from "bullmq";
-import { pool } from "../config/database.js";
-import eventBus from "../config/eventBus.js";
-
+import { pool } from "./dbconfig.js";
+import redisClient from "./redis.js";
 
 const seatExpiryWorker = new Worker('SeatExpiryQueue', async (job) => {
     const { seatId, userId } = job.data;
-
     try {
         const result = await pool.query(
             `SELECT * 
@@ -44,7 +42,7 @@ const seatExpiryWorker = new Worker('SeatExpiryQueue', async (job) => {
 
 seatExpiryWorker.on('completed', (job) => {
     const { seatId, userId } = job.data;
-    eventBus.emit("eventUpdate", { eventId: "bf723993-2079-4bf9-9ed1-23aaccd0cfbe", seatId: seatId, status: "Available" });
+    redisClient.publish("eventUpdate", JSON.stringify({ eventId: "bf723993-2079-4bf9-9ed1-23aaccd0cfbe", seatId, status: "Available" }));
     console.log(`Seat expiry job ${job.id} completed successfully for seat ${seatId} held by user ${userId}.`);
 });
 
