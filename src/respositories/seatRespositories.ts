@@ -23,7 +23,6 @@ class seatRepositories{
             // Lock the seat row for update to prevent race conditions
             const res = await client.query(`SELECT * FROM seats WHERE id = $1 AND status = 'AVAILABLE' FOR UPDATE`, [seatId]);
             if(res.rows.length === 0) {
-                console.log('seat query result', res.rows)
                 throw new Error('Seat not available');
             }
             // Update the seat status to 'HELD' and set the held_by_user_id and held_until fields

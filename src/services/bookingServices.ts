@@ -17,12 +17,12 @@ class BookingServices {
         try {
             const lockKey = `lock:seat${seatId}`
             const lock: Lock | null = await acquireLock(redisClient, lockKey, 10000);
-            console.log('lock', lock)
             if(!lock) {
                 throw new Error("Seat is currently booked by someone else. Please try again.");
             }try{
                 const res = await seatRepository.reserveSeat(seatId, userId);
-                await queue.add('seatExpiry', { seatId, userId }, { delay: 30000 });
+                redisClient.publish("eventUpdate", JSON.stringify({ eventId: "bf723993-2079-4bf9-9ed1-23aaccd0cfbe", seatId, status: "held" }));
+                await queue.add('seatExpiry', { seatId, userId }, { delay: 10000 });
                 if(res instanceof Error) {
                     throw res;
                 }
