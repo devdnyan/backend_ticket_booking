@@ -1,6 +1,10 @@
-import { Worker } from "bullmq";
+import { Worker, Job } from "bullmq";
 import { pool } from "./dbconfig.js";
 import redisClient from "./redis.js";
+
+interface JobWithStatus extends Job {
+    status: 'HELD' | 'Completed' | 'Failed' | 'Booked';
+}
 
 const seatExpiryWorker = new Worker('SeatExpiryQueue', async (job) => {
     const { seatId, userId } = job.data;
@@ -16,6 +20,8 @@ const seatExpiryWorker = new Worker('SeatExpiryQueue', async (job) => {
         )
         if(!result.rows.length) {
             console.log(`Seat ${seatId} is not held or does not exist.`);
+            const newJob = job as JobWithStatus;
+            newJob.status = 'Booked';
             return;
         }
         await pool.query(
@@ -42,8 +48,13 @@ const seatExpiryWorker = new Worker('SeatExpiryQueue', async (job) => {
 
 seatExpiryWorker.on('completed', (job) => {
     const { seatId, userId } = job.data;
-    redisClient.publish("eventUpdate", JSON.stringify({ eventId: "bf723993-2079-4bf9-9ed1-23aaccd0cfbe", seatId, status: "Available" }));
-    console.log(`Seat expiry job ${job.id} completed successfully for seat ${seatId} held by user ${userId}.`);
+    const newJob = job as JobWithStatus;
+    if(newJob.status !== 'Booked') {
+        redisClient.publish("eventUpdate", JSON.stringify({ eventId: "bf723993-2079-4bf9-9ed1-23aaccd0cfbe", seatId, status: 'Available' }));
+        console.log(`Seat expiry job ${job.id} completed successfully for seat ${seatId} held by user ${userId}.`);
+        return;
+    }
+    console.log(`Seat expiry job ${job.id} completed successfully for seat ${seatId} held by user ${userId}, but the seat was already booked.`);
 });
 
 seatExpiryWorker.on('failed', (_, err) => {

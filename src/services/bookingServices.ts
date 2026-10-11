@@ -35,6 +35,19 @@ class BookingServices {
             throw error;
         }
     }
+
+    async confirmSeat(seatId: string, userId: string) {
+        try {
+            const res = await seatRepository.confirmSeat(seatId, userId);
+            if(res instanceof Error) {
+                throw res;
+            }
+            // console.log("Publishing to redis")
+            redisClient.publish("eventUpdate", JSON.stringify({ eventId: res.result.event_id, seatId, status: "booked" }));
+        } catch (error) {
+            throw new Error("ERROR: " + error);
+        }
+    }
     
 }
 
