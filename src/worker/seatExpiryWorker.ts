@@ -2,10 +2,6 @@ import { Worker, Job } from "bullmq";
 import { pool } from "./dbconfig.js";
 import redisClient from "./redis.js";
 
-interface JobWithStatus extends Job {
-    status: 'HELD' | 'Completed' | 'Failed' | 'Booked';
-}
-
 const seatExpiryWorker = new Worker('SeatExpiryQueue', async (job) => {
     const { seatId, userId } = job.data;
     try {
@@ -20,19 +16,18 @@ const seatExpiryWorker = new Worker('SeatExpiryQueue', async (job) => {
         )
         if(!result.rows.length) {
             console.log(`Seat ${seatId} is not held or does not exist.`);
-            const newJob = job as JobWithStatus;
-            newJob.status = 'Booked';
-            return;
+            return 'Booked';
         }
         await pool.query(
             `UPDATE seats 
                 SET status = 'AVAILABLE',
                     held_by_user_id = NULL,
                     held_until = NULL 
-                WHERE id = $1::uuid AND held_by_user_id = $2::uuid`,
+                WHERE id = $1::uuid AND held_by_user_id = $2::uuid AND status = 'HELD'`,
             [seatId, userId]
         )
         console.log(`Seat ${seatId} has been released and is now available.`);
+        return 'Released';
     } catch (error) {
         console.error(`Error occurred while releasing seat ${seatId}:`, error);
         throw error;
@@ -46,10 +41,9 @@ const seatExpiryWorker = new Worker('SeatExpiryQueue', async (job) => {
     }
 )
 
-seatExpiryWorker.on('completed', (job) => {
+seatExpiryWorker.on('completed', (job, result) => {
     const { seatId, userId } = job.data;
-    const newJob = job as JobWithStatus;
-    if(newJob.status !== 'Booked') {
+    if(result !== 'Booked') {
         redisClient.publish("eventUpdate", JSON.stringify({ eventId: "bf723993-2079-4bf9-9ed1-23aaccd0cfbe", seatId, status: 'Available' }));
         console.log(`Seat expiry job ${job.id} completed successfully for seat ${seatId} held by user ${userId}.`);
         return;

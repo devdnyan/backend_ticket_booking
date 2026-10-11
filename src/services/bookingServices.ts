@@ -23,6 +23,7 @@ class BookingServices {
                 const res = await seatRepository.reserveSeat(seatId, userId);
                 redisClient.publish("eventUpdate", JSON.stringify({ eventId: "bf723993-2079-4bf9-9ed1-23aaccd0cfbe", seatId, status: "held" }));
                 await queue.add('seatExpiry', { seatId, userId }, { delay: 10000 });
+                // await queue.add('seatExpiry', { seatId, userId });
                 if(res instanceof Error) {
                     throw res;
                 }

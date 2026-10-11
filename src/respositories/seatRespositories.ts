@@ -66,7 +66,7 @@ class seatRepositories{
             }
             let result = await client.query(`
                 UPDATE seats
-                SET status = 'BOOKED', held_until = NULL
+                SET status = 'BOOKED', held_until = NULL, held_by_user_id = NULL
                 WHERE id = $1
                 RETURNING *
                 `,
