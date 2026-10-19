@@ -2,10 +2,10 @@ import { Pool } from "pg";
 
 const pool = new Pool({
     user: "ticket_app",
-    host: "localhost",
+    host: "db",
     database: "ticket_booking",
     password: "banana",
-    port: 5000,
+    port: 5432,
 })
 
 async function seedDataBase() {
