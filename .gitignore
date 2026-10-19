@@ -4,4 +4,6 @@ build
 .env
 .DS_Store
 coverage
-
+docs
+tests
+vitest*
