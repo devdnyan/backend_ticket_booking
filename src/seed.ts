@@ -1,4 +1,12 @@
-import { pool } from './database.js';
+import { Pool } from "pg";
+
+const pool = new Pool({
+    user: "ticket_app",
+    host: "localhost",
+    database: "ticket_booking",
+    password: "banana",
+    port: 5000,
+})
 
 async function seedDataBase() {
     try{

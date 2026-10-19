@@ -17,14 +17,14 @@ async function getAvailableSeatsHandler(
 }
 
 async function holdSeatHandler(
-    req: express.Request<Record<string,never>, Record<string,never>, {seatId: string}>,
+    req: express.Request<Record<string,never>, Record<string,never>, {seatId: string, eventId: string}>,
     res: express.Response
 ) {
     const userId = '123e4567-e89b-12d3-a456-426614174000'
-    const {seatId} = req.body;
+    const {seatId, eventId} = req.body;
 
     try {
-        const updatedSeats = await bookingService.holdSeat(seatId, userId);
+        const updatedSeats = await bookingService.holdSeat(seatId, userId, eventId);
         res.json(updatedSeats);
 
     } catch (error) {

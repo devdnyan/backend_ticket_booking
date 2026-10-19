@@ -1,4 +1,3 @@
-import { stat } from 'node:fs';
 import {pool} from '../config/database.js'
 
 class seatRepositories{
@@ -82,12 +81,12 @@ class seatRepositories{
                 `, 
                 [seatId, userId, result.rows[0].event_id]
             );
+            await client.query('COMMIT');
             return {result : result.rows[0], message: "Seat confirmed successfully"};
         }catch(error){
             await client.query('ROLLBACK');
             throw new Error('Error confirming seat: ' + (error instanceof Error ? error.message : 'Unknown error'));
         } finally {
-            await client.query('COMMIT');
             client.release();
         }
     }

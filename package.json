@@ -6,7 +6,13 @@
   "scripts": {
     "dev": "tsx watch src/app.ts",
     "build": "tsc",
-    "start": "node dist/app.js"
+    "start": "node dist/app.js",
+    "test:integration": "vitest run tests/integration/concurrency.test.ts",
+    "test:docker": "bash tests/run-docker-integration-tests.sh",
+    "test:stress": "vitest run tests/integration/stress.test.ts",
+    "test:stress:heavy": "STRESS_PROFILE=heavy vitest run tests/integration/stress.test.ts",
+    "test:docker:stress": "bash tests/run-docker-stress-tests.sh",
+    "test:docker:stress:heavy": "STRESS_PROFILE=heavy bash tests/run-docker-stress-tests.sh"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +35,7 @@
     "@types/pg": "^8.23.1",
     "@types/ws": "^8.18.1",
     "tsx": "^4.23.12",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^2.1.9"
   }
 }

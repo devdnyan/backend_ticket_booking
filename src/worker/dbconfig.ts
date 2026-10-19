@@ -1,11 +1,11 @@
 import { Pool } from "pg";
 
 const pool = new Pool({
-    user: "ticket_app",
-    host: "localhost",
-    database: "ticket_booking",
-    password: "banana",
-    port: 5432,
+    user: process.env.DB_USER || "ticket_app",
+    host: process.env.DB_HOST || "localhost",
+    database: process.env.DB_NAME || "ticket_booking",
+    password: process.env.DB_PASSWORD || "banana",
+    port: parseInt(process.env.DB_PORT ?? "5432", 10),
 })
 
 console.log("Connected to PostgreSQL database successfully.");

@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ticket_booking
+      TICKET_APP_PASSWORD: ${TICKET_APP_PASSWORD}
+    ports:
+      - "5000:5432"
+    volumes:
+      - postgres_db:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+
+  redis:
+    image: redis:7
+    ports:
+      - "6378:6379"
+  
+  server:
+    build: .
+    command: npm start
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ticket_app
+      DB_PASSWORD: ${TICKET_APP_PASSWORD}
+      DB_NAME: ticket_booking
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - db
+      - redis
+
+  worker:
+    build: .
+    command: node dist/worker/seatExpiryWorker.js
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ticket_app
+      DB_PASSWORD: ${TICKET_APP_PASSWORD}
+      DB_NAME: ticket_booking
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - db
+      - redis
+    
+    
+volumes:
+  postgres_db:  
+
